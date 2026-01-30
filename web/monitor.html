@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时监控看板</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="monitor-page">
+    <div class="top-bar">
+        <div class="logo">🔍 专注助手</div>
+        <div id="statusTag" class="status-tag">连接中...</div>
+    </div>
+
+    <div class="main-content">
+        <div class="video-section">
+            <img id="videoFeed" src="" alt="视频画面">
+            <div id="alertOverlay" class="alert-overlay"></div>
+        </div>
+
+        <div class="data-sidebar">
+            <div class="data-card">
+                <div class="label">当前状态</div>
+                <div id="status" class="value">等待中</div>
+            </div>
+            
+            <div class="data-card">
+                <div class="label">专注评分</div>
+                <div id="score" class="value">0</div>
+            </div>
+
+            <div class="data-grid">
+                <div class="data-card">
+                    <div class="label">眨眼次数</div>
+                    <div id="blinks" class="value">0</div>
+                </div>
+                <div class="data-card">
+                    <div class="label">头部姿态</div>
+                    <div id="pose" class="value">--</div>
+                </div>
+            </div>
+
+            <button class="btn btn-primary btn-full" onclick="fetch('/api/start', {method:'POST'})">
+                ▶ 开始运行
+            </button>
+            <button class="btn btn-secondary btn-full" onclick="window.location.href='/'">
+                ← 返回设置
+            </button>
+        </div>
+    </div>
+
+    <script src="/monitor.js"></script>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习监督系统</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body class="menu-page">
+    <div class="background-overlay"></div>
+    <div class="menu-container">
+        <h1 class="title">📚 学习监督系统</h1>
+        <p class="subtitle">专注学习，高效成长</p>
+        
+        <div class="mode-section">
+            <h2>选择模式</h2>
+            <div class="mode-cards">
+                <div class="mode-card active" data-mode="STUDY">
+                    <div class="mode-icon">📖</div>
+                    <div class="mode-name">学习模式</div>
+                </div>
+                <div class="mode-card" data-mode="HOMEWORK">
+                    <div class="mode-icon">✍️</div>
+                    <div class="mode-name">作业模式</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-section">
+            <button class="btn btn-large btn-primary" id="startBtn">进入监控</button>
+            <button class="btn btn-large btn-secondary" id="settingsBtn">参数调试</button>
+        </div>
+    </div>
+
+    <div id="settingsModal" class="modal">
+        <div class="modal-content" style="max-width: 850px; background: var(--bg-card);">
+            <div class="modal-header">
+                <h3>🛠️ 算法精准调试看板</h3>
+                <span class="close-modal" id="closeModal">&times;</span>
+            </div>
+            <div class="modal-body" style="display: flex; gap: 20px; padding: 20px;">
+                <div style="flex: 1.2; position: relative;">
+                    <div style="background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #333;">
+                        <img id="debugVideo" src="" style="width: 100%; height: auto; display: block;" alt="等待摄像头...">
+                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; font-family: monospace; color: #00ff00; font-size: 13px; pointer-events: none;">
+                            <div style="margin-bottom:4px;">EAR (眼): <span id="live_ear">0.000</span></div>
+                            <div style="margin-bottom:4px;">Pitch (头): <span id="live_pitch">0°</span></div>
+                            <div>Yaw (转): <span id="live_yaw">0°</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+                    <div class="setting-group">
+                        <label>闭眼阈值 (EAR)</label>
+                        <input type="range" id="ear_threshold" min="0.1" max="0.5" step="0.01" value="0.2">
+                        <span id="earThresholdValue" class="setting-value">0.2</span>
+                    </div>
+                    <div class="setting-group">
+                        <label>低头阈值 (Pitch)</label>
+                        <input type="range" id="pitch_extreme_low" min="-60" max="0" step="1" value="-30">
+                        <span id="pitchExtremeLowValue" class="setting-value">-30°</span>
+                    </div>
+                    <p style="color: var(--text-secondary); font-size: 12px;">提示：请根据左侧实时数据调整滑块至临界值。</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%;">同步参数并保存</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="/start.js"></script>
+</body>
+</html>
