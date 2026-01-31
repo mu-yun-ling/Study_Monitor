@@ -344,8 +344,12 @@ function playNotificationSound(type) {
 
 // ========== 警告通知 ==========
 let lastWarningToast = null;
+let lastAlertTimestamp = 0; // 防抖时间戳
 
 function showAlertToast(level, timers) {
+    const now = Date.now();
+    
+    // 如果已经触发了最高级别警告（走神弹窗），则不再显示 Toast
     if (level >= 3) {
         if (lastWarningToast) {
             removeToast(lastWarningToast);
@@ -354,9 +358,15 @@ function showAlertToast(level, timers) {
         return;
     }
     
-    if (level === state.lastAlertLevel) return;
-    state.lastAlertLevel = level;
+    // 状态变化检测：如果级别没变，且上一次更新在1秒内，跳过（防止UI鬼畜）
+    if (level === state.lastAlertLevel && (now - lastAlertTimestamp < 1000)) {
+        return;
+    }
     
+    state.lastAlertLevel = level;
+    lastAlertTimestamp = now;
+    
+    // 清除旧的 Toast
     if (lastWarningToast) {
         removeToast(lastWarningToast);
         lastWarningToast = null;
@@ -401,12 +411,13 @@ function showAlertToast(level, timers) {
         message = `持续${timerName}中，${remaining} 秒后判定走神`;
     }
     
+    // 只有当级别真正变化或者内容变化较大时才新建 Toast
     lastWarningToast = showToast({
         type,
         icon,
         title,
         message,
-        duration: 3000,
+        duration: 3000, // 给足够的时间，不要因为数据刷新太快而频繁消失
         sound: level >= 2,
         systemNotify: level >= 2
     });
@@ -446,6 +457,8 @@ function showDistraction(reason) {
 }
 
 function hideDistraction() {
+    if (!distractionShown) return; // 如果已经隐藏，直接返回，防止重复DOM操作
+
     distractionShown = false;
     distractionToastShown = false;
     elements.distractionOverlay.classList.remove('show');
