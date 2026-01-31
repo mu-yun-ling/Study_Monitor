@@ -34,10 +34,12 @@ def background_thread():
     cap.release()
 
 @app.route('/')
-def index(): return render_template('start.html')
+def index(): 
+    return render_template('start.html')
 
 @app.route('/monitor')
-def monitor_page(): return render_template('monitor.html')
+def monitor_page(): 
+    return render_template('monitor.html')
 
 @app.route('/api/start', methods=['POST'])
 def start():
@@ -63,7 +65,12 @@ def set_mode():
     monitor.set_mode(request.json.get('mode', 'STUDY'))
     return jsonify({'status': 'ok'})
 
+# 新增：重置走神状态
+@app.route('/api/reset_distraction', methods=['POST'])
+def reset_distraction():
+    monitor.reset_distraction()
+    return jsonify({'status': 'ok'})
+
 if __name__ == '__main__':
     print("\n🚀 系统就绪！访问: http://127.0.0.1:5000")
-    # debug=False 解决“复读机”输出问题
     socketio.run(app, debug=False, host='127.0.0.1', port=5000)

@@ -12,28 +12,114 @@
         <h1 class="title">📚 学习监督系统</h1>
         <p class="subtitle">专注学习，高效成长</p>
         
+        <!-- 学习数据卡片 -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-icon">🏆</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalScore">0</div>
+                    <div class="stat-label">累计积分</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⏱️</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalTime">0h</div>
+                    <div class="stat-label">学习时长</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">🍅</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalPomodoros">0</div>
+                    <div class="stat-label">番茄数</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">✅</div>
+                <div class="stat-info">
+                    <div class="stat-value" id="totalTasks">0</div>
+                    <div class="stat-label">完成任务</div>
+                </div>
+            </div>
+        </div>
+
         <div class="mode-section">
             <h2>选择模式</h2>
             <div class="mode-cards">
                 <div class="mode-card active" data-mode="STUDY">
                     <div class="mode-icon">📖</div>
                     <div class="mode-name">学习模式</div>
+                    <div class="mode-desc">阅读、背诵、复习</div>
                 </div>
                 <div class="mode-card" data-mode="HOMEWORK">
                     <div class="mode-icon">✍️</div>
                     <div class="mode-name">作业模式</div>
+                    <div class="mode-desc">写作业、做题</div>
                 </div>
             </div>
         </div>
         
         <div class="button-section">
-            <button class="btn btn-large btn-primary" id="startBtn">进入监控</button>
-            <button class="btn btn-large btn-secondary" id="settingsBtn">参数调试</button>
+            <button class="btn btn-large btn-primary" id="startBtn">🚀 开始学习</button>
+            <button class="btn btn-large btn-secondary" id="recordBtn">📊 学习记录</button>
+            <button class="btn btn-large btn-secondary" id="settingsBtn">⚙️ 参数调试</button>
         </div>
     </div>
 
+    <!-- 学习记录弹窗 -->
+    <div id="recordModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>📊 学习记录</h3>
+                <span class="close-modal" id="closeRecordModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="record-tabs">
+                    <button class="tab-btn active" data-tab="today">今日</button>
+                    <button class="tab-btn" data-tab="week">本周</button>
+                    <button class="tab-btn" data-tab="all">全部</button>
+                </div>
+                <div class="record-content">
+                    <div class="record-summary">
+                        <div class="summary-item">
+                            <span class="summary-label">学习时长</span>
+                            <span class="summary-value" id="recordTime">0 分钟</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">获得积分</span>
+                            <span class="summary-value" id="recordScore">+0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">完成番茄</span>
+                            <span class="summary-value" id="recordPomodoros">0 个</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">完成任务</span>
+                            <span class="summary-value" id="recordTasks">0 个</span>
+                        </div>
+                        <div class="summary-item warning">
+                            <span class="summary-label">走神次数</span>
+                            <span class="summary-value" id="recordDistractions">0 次</span>
+                        </div>
+                    </div>
+                    <div class="record-history">
+                        <h4>历史记录</h4>
+                        <div class="history-list" id="historyList">
+                            <div class="history-empty">暂无记录，开始你的第一次学习吧！</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-danger" id="clearRecordBtn">清空记录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 参数调试弹窗 -->
     <div id="settingsModal" class="modal">
-        <div class="modal-content" style="max-width: 850px; background: var(--bg-card);">
+        <div class="modal-content" style="max-width: 850px;">
             <div class="modal-header">
                 <h3>🛠️ 算法精准调试看板</h3>
                 <span class="close-modal" id="closeModal">&times;</span>
@@ -42,9 +128,9 @@
                 <div style="flex: 1.2; position: relative;">
                     <div style="background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #333;">
                         <img id="debugVideo" src="" style="width: 100%; height: auto; display: block;" alt="等待摄像头...">
-                        <div style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); padding: 10px; border-radius: 8px; font-family: monospace; color: #00ff00; font-size: 13px; pointer-events: none;">
-                            <div style="margin-bottom:4px;">EAR (眼): <span id="live_ear">0.000</span></div>
-                            <div style="margin-bottom:4px;">Pitch (头): <span id="live_pitch">0°</span></div>
+                        <div class="debug-overlay">
+                            <div>EAR (眼): <span id="live_ear">0.000</span></div>
+                            <div>Pitch (头): <span id="live_pitch">0°</span></div>
                             <div>Yaw (转): <span id="live_yaw">0°</span></div>
                         </div>
                     </div>
@@ -60,11 +146,11 @@
                         <input type="range" id="pitch_extreme_low" min="-60" max="0" step="1" value="-30">
                         <span id="pitchExtremeLowValue" class="setting-value">-30°</span>
                     </div>
-                    <p style="color: var(--text-secondary); font-size: 12px;">提示：请根据左侧实时数据调整滑块至临界值。</p>
+                    <p class="setting-hint">提示：请根据左侧实时数据调整滑块至临界值。</p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%;">同步参数并保存</button>
+                <button class="btn btn-primary" id="saveSettingsBtn" style="width: 100%;">保存参数</button>
             </div>
         </div>
     </div>
