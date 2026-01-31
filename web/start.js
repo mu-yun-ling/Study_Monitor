@@ -5,7 +5,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const STORAGE_KEYS = {
         SCORE: 'focus-monitor-score',
         RECORDS: 'focus-monitor-records',
-        DIARY: 'focus-monitor-diary'
+        DIARY: 'focus-monitor-diary',
+        SESSIONS: 'focus-monitor-sessions'
     };
 
     const PAGE_SIZE = 15;
@@ -13,6 +14,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let recordCurrentFilter = 'today';
     let recordCurrentMonth = '';
     let recordSortOrder = 'desc';
+    let heatmapYear = new Date().getFullYear();
+    let heatmapMonth = new Date().getMonth();
     let diaryCurrentPage = 1;
     let diaryCurrentMonth = '';
     let diarySortOrder = 'desc';
@@ -29,6 +32,182 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     loadStats();
+
+    // ========== 学习时长计算 ==========
+    function calculateStudyDuration(sessions, startDate, endDate) {
+        let totalSeconds = 0;
+        sessions.forEach(session => {
+            if (!session.end) return;
+            
+            const sessionStart = new Date(session.start);
+            const sessionEnd = new Date(session.end);
+            
+            if (sessionStart >= startDate && sessionEnd <= endDate) {
+                totalSeconds += (sessionEnd - sessionStart) / 1000;
+            } else if (sessionStart < endDate && sessionEnd > startDate) {
+                const effectiveStart = sessionStart < startDate ? startDate : sessionStart;
+                const effectiveEnd = sessionEnd > endDate ? endDate : sessionEnd;
+                totalSeconds += (effectiveEnd - effectiveStart) / 1000;
+            }
+        });
+        return totalSeconds;
+    }
+
+    function formatDuration(seconds) {
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        if (hours > 0) {
+            return `${hours}小时${minutes}分`;
+        }
+        return `${minutes}分钟`;
+    }
+
+    function getDailyStudyData(year) {
+        const sessions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSIONS) || '[]');
+        const dailyData = {};
+        
+        sessions.forEach(session => {
+            if (!session.end) return;
+            
+            const sessionStart = new Date(session.start);
+            if (sessionStart.getFullYear() === year) {
+                const dateKey = sessionStart.toISOString().split('T')[0];
+                const duration = (new Date(session.end) - sessionStart) / 1000;
+                
+                if (!dailyData[dateKey]) {
+                    dailyData[dateKey] = { duration: 0, sessions: 0 };
+                }
+                dailyData[dateKey].duration += duration;
+                dailyData[dateKey].sessions += 1;
+            }
+        });
+        
+        return dailyData;
+    }
+
+    // ========== 月份热力图 ==========
+    function renderMonthHeatmap(year, month) {
+        const grid = document.getElementById('heatmapGrid');
+        const monthsContainer = document.getElementById('heatmapMonths');
+        
+        if (!grid || !monthsContainer) return;
+        
+        const monthNames = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+        document.getElementById('heatmapYear').textContent = `${year}年${monthNames[month]}`;
+        
+        const dailyData = getDailyStudyData(year);
+        
+        // 找出该月最大学习时长
+        let maxDuration = 0;
+        Object.entries(dailyData).forEach(([dateKey, d]) => {
+            const date = new Date(dateKey);
+            if (date.getFullYear() === year && date.getMonth() === month) {
+                if (d.duration > maxDuration) maxDuration = d.duration;
+            }
+        });
+        if (maxDuration === 0) maxDuration = 3600;
+        
+        // 该月第一天和最后一天
+        const firstDay = new Date(year, month, 1);
+        const lastDay = new Date(year, month + 1, 0);
+        
+        // 生成星期标题
+        monthsContainer.innerHTML = '';
+        const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+        weekDays.forEach(day => {
+            const span = document.createElement('span');
+            span.textContent = day;
+            monthsContainer.appendChild(span);
+        });
+        
+        grid.innerHTML = '';
+        
+        // 创建日历网格
+        const calendarGrid = document.createElement('div');
+        calendarGrid.className = 'month-calendar-grid';
+        
+        // 填充月初空白
+        const firstDayOfWeek = firstDay.getDay();
+        for (let i = 0; i < firstDayOfWeek; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'heatmap-cell outside';
+            calendarGrid.appendChild(emptyCell);
+        }
+        
+        // 填充日期
+        for (let day = 1; day <= lastDay.getDate(); day++) {
+            const currentDate = new Date(year, month, day);
+            const dateKey = currentDate.toISOString().split('T')[0];
+            const data = dailyData[dateKey] || { duration: 0, sessions: 0 };
+            const level = getLevel(data.duration, maxDuration);
+            
+            const cell = document.createElement('div');
+            cell.className = `heatmap-cell level-${level}`;
+            cell.dataset.date = dateKey;
+            cell.dataset.duration = data.duration;
+            cell.dataset.sessions = data.sessions;
+            cell.dataset.day = day;
+            
+            // 显示日期数字
+            cell.innerHTML = `<span class="cell-day">${day}</span>`;
+            
+            cell.addEventListener('mouseenter', showHeatmapTooltip);
+            cell.addEventListener('mouseleave', hideHeatmapTooltip);
+            
+            calendarGrid.appendChild(cell);
+        }
+        
+        grid.appendChild(calendarGrid);
+    }
+    
+    function getLevel(duration, maxDuration) {
+        if (duration === 0) return 0;
+        const ratio = duration / maxDuration;
+        if (ratio < 0.25) return 1;
+        if (ratio < 0.5) return 2;
+        if (ratio < 0.75) return 3;
+        return 4;
+    }
+    
+    function showHeatmapTooltip(e) {
+        const tooltip = document.getElementById('heatmapTooltip');
+        const cell = e.target.closest('.heatmap-cell');
+        if (!cell || !cell.dataset.date) return;
+        
+        const date = cell.dataset.date;
+        const duration = parseFloat(cell.dataset.duration) || 0;
+        const sessions = parseInt(cell.dataset.sessions) || 0;
+        
+        const dateObj = new Date(date);
+        const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+        const dateStr = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日 ${weekDays[dateObj.getDay()]}`;
+        
+        let content = `<strong>${dateStr}</strong><br>`;
+        if (duration > 0) {
+            content += `学习时长: ${formatDuration(duration)}<br>`;
+            content += `学习次数: ${sessions}次`;
+        } else {
+            content += '暂无学习记录';
+        }
+        
+        tooltip.innerHTML = content;
+        tooltip.style.display = 'block';
+        
+        const rect = cell.getBoundingClientRect();
+        const modalBody = document.querySelector('#recordModal .modal-body');
+        const modalRect = modalBody.getBoundingClientRect();
+        
+        let left = rect.left - modalRect.left + rect.width / 2;
+        let top = rect.top - modalRect.top - 60;
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
+    
+    function hideHeatmapTooltip() {
+        const tooltip = document.getElementById('heatmapTooltip');
+        tooltip.style.display = 'none';
+    }
 
     // ========== 模式切换 ==========
     document.querySelectorAll('.mode-card').forEach(card => {
@@ -63,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
             if (data.status === 'ok' && data.settings) {
                 const settings = data.settings;
                 
-                // 更新滑动条的值
                 const earSlider = document.getElementById('ear_threshold');
                 const pitchDownSlider = document.getElementById('pitch_head_down');
                 const pitchUpSlider = document.getElementById('pitch_head_up');
@@ -99,7 +277,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     document.getElementById('settingsBtn').onclick = async () => {
         settingsModal.style.display = 'flex';
-        // 先加载当前设置，再启动摄像头
         await loadSettings();
         fetch('/api/start', { method: 'POST' });
     };
@@ -118,7 +295,10 @@ document.addEventListener('DOMContentLoaded', function() {
         recordCurrentFilter = 'today';
         recordCurrentMonth = '';
         recordSortOrder = 'desc';
+        heatmapYear = new Date().getFullYear();
+        heatmapMonth = new Date().getMonth();
         document.getElementById('monthFilterContainer').style.display = 'none';
+        document.getElementById('heatmapSection').style.display = 'none';
         document.getElementById('sortOrder').value = 'desc';
         document.querySelectorAll('.filter-tabs .tab-btn').forEach(b => b.classList.remove('active'));
         document.querySelector('.filter-tabs .tab-btn[data-tab="today"]').classList.add('active');
@@ -130,6 +310,41 @@ document.addEventListener('DOMContentLoaded', function() {
         recordModal.style.display = 'none';
     };
     
+    // 热力图月份导航
+    document.getElementById('prevYearBtn').onclick = () => {
+        heatmapMonth--;
+        if (heatmapMonth < 0) {
+            heatmapMonth = 11;
+            heatmapYear--;
+        }
+        updateMonthFilterFromHeatmap();
+        renderMonthHeatmap(heatmapYear, heatmapMonth);
+        loadRecordData();
+    };
+    
+    document.getElementById('nextYearBtn').onclick = () => {
+        const now = new Date();
+        const currentYM = now.getFullYear() * 12 + now.getMonth();
+        const selectedYM = heatmapYear * 12 + heatmapMonth;
+        
+        if (selectedYM < currentYM) {
+            heatmapMonth++;
+            if (heatmapMonth > 11) {
+                heatmapMonth = 0;
+                heatmapYear++;
+            }
+            updateMonthFilterFromHeatmap();
+            renderMonthHeatmap(heatmapYear, heatmapMonth);
+            loadRecordData();
+        }
+    };
+    
+    function updateMonthFilterFromHeatmap() {
+        const monthKey = `${heatmapYear}-${String(heatmapMonth + 1).padStart(2, '0')}`;
+        recordCurrentMonth = monthKey;
+        document.getElementById('monthFilter').value = monthKey;
+    }
+    
     document.querySelectorAll('.filter-tabs .tab-btn').forEach(btn => {
         btn.onclick = function() {
             document.querySelectorAll('.filter-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -138,10 +353,20 @@ document.addEventListener('DOMContentLoaded', function() {
             recordCurrentPage = 1;
             
             const monthContainer = document.getElementById('monthFilterContainer');
+            const heatmapSection = document.getElementById('heatmapSection');
+            
             if (recordCurrentFilter === 'all') {
                 monthContainer.style.display = 'block';
+                heatmapSection.style.display = 'block';
+                if (!recordCurrentMonth) {
+                    heatmapYear = new Date().getFullYear();
+                    heatmapMonth = new Date().getMonth();
+                    updateMonthFilterFromHeatmap();
+                }
+                renderMonthHeatmap(heatmapYear, heatmapMonth);
             } else {
                 monthContainer.style.display = 'none';
+                heatmapSection.style.display = 'none';
                 recordCurrentMonth = '';
             }
             
@@ -152,6 +377,14 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('monthFilter').onchange = function() {
         recordCurrentMonth = this.value;
         recordCurrentPage = 1;
+        
+        if (recordCurrentMonth) {
+            const [year, month] = recordCurrentMonth.split('-').map(Number);
+            heatmapYear = year;
+            heatmapMonth = month - 1;
+            renderMonthHeatmap(heatmapYear, heatmapMonth);
+        }
+        
         loadRecordData();
     };
     
@@ -163,6 +396,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function updateMonthFilterOptions() {
         const records = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECORDS) || '[]');
+        const sessions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSIONS) || '[]');
         const months = new Set();
         
         records.forEach(item => {
@@ -171,8 +405,14 @@ document.addEventListener('DOMContentLoaded', function() {
             months.add(monthKey);
         });
         
+        sessions.forEach(session => {
+            const date = new Date(session.start);
+            const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            months.add(monthKey);
+        });
+        
         const select = document.getElementById('monthFilter');
-        select.innerHTML = '<option value="">全部月份</option>';
+        select.innerHTML = '<option value="">选择月份</option>';
         
         Array.from(months).sort().reverse().forEach(month => {
             const [year, m] = month.split('-');
@@ -182,18 +422,26 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function loadRecordData() {
         const records = JSON.parse(localStorage.getItem(STORAGE_KEYS.RECORDS) || '[]');
+        const sessions = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSIONS) || '[]');
         const now = new Date();
         let filtered = [];
+        let startDate, endDate;
         
         if (recordCurrentFilter === 'today') {
             const today = now.toDateString();
             filtered = records.filter(item => new Date(item.date).toDateString() === today);
+            startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            endDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
         } else if (recordCurrentFilter === 'week') {
             const weekAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
             filtered = records.filter(item => new Date(item.date) >= weekAgo);
+            startDate = weekAgo;
+            endDate = now;
         } else if (recordCurrentFilter === 'month') {
             const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
             filtered = records.filter(item => new Date(item.date) >= monthStart);
+            startDate = monthStart;
+            endDate = now;
         } else {
             filtered = records;
             if (recordCurrentMonth) {
@@ -202,6 +450,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                     return monthKey === recordCurrentMonth;
                 });
+                const [year, month] = recordCurrentMonth.split('-').map(Number);
+                startDate = new Date(year, month - 1, 1);
+                endDate = new Date(year, month, 0, 23, 59, 59);
+            } else {
+                startDate = new Date(0);
+                endDate = now;
             }
         }
         
@@ -210,6 +464,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const dateB = new Date(b.date);
             return recordSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         });
+        
+        // 计算学习时长
+        const studySeconds = calculateStudyDuration(sessions, startDate, endDate);
+        document.getElementById('recordDuration').textContent = formatDuration(studySeconds);
         
         let totalScore = 0;
         let distractionCount = 0;
@@ -412,7 +670,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('diaryContent').value = '';
         updateDiaryMonthFilter();
         loadDiaryList();
-        alert('日记保存���功！');
+        alert('日记保存成功！');
     };
     
     function loadDiaryList() {

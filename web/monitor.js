@@ -1,6 +1,43 @@
 // ========== Socket 连接 ==========
 const socket = io();
 
+// ========== 学习会话记录 ==========
+const SESSION_KEY = 'focus-monitor-sessions';
+let currentSessionId = null;
+let sessionStartTime = null;
+
+function startSession() {
+    sessionStartTime = new Date();
+    currentSessionId = Date.now();
+    
+    const sessions = JSON.parse(localStorage.getItem(SESSION_KEY) || '[]');
+    sessions.push({
+        id: currentSessionId,
+        start: sessionStartTime.toISOString(),
+        end: null
+    });
+    localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
+}
+
+function endSession() {
+    if (!currentSessionId) return;
+    
+    const sessions = JSON.parse(localStorage.getItem(SESSION_KEY) || '[]');
+    const sessionIndex = sessions.findIndex(s => s.id === currentSessionId);
+    
+    if (sessionIndex >= 0) {
+        sessions[sessionIndex].end = new Date().toISOString();
+        localStorage.setItem(SESSION_KEY, JSON.stringify(sessions));
+    }
+    
+    currentSessionId = null;
+    sessionStartTime = null;
+}
+
+window.addEventListener('beforeunload', () => {
+    endSession();
+});
+
 // ========== DOM 元素 ==========
 const elements = {
     backBtn: document.getElementById('backBtn'),
@@ -150,17 +187,14 @@ function showSystemNotification(title, message, options = {}) {
     } = options;
     
     if (!('Notification' in window)) {
-        console.log('浏览器不支持系统通知');
         return null;
     }
     
     if (Notification.permission !== 'granted') {
-        console.log('系统通知权限未授予');
         return null;
     }
     
     try {
-        // 使用时间戳确保每次都是新通知，不会被合并
         const notification = new Notification(title, {
             body: message,
             icon: '/favicon.ico',
@@ -170,7 +204,6 @@ function showSystemNotification(title, message, options = {}) {
             silent: false
         });
         
-        // 非持久通知5秒后自动关闭
         if (!requireInteraction) {
             setTimeout(() => notification.close(), 5000);
         }
@@ -203,7 +236,6 @@ function showToast(options) {
         systemNotify = true
     } = options;
     
-    // 页面内 Toast
     let container = elements.toastContainer;
     if (!container) {
         container = document.getElementById('toastContainer');
@@ -256,7 +288,6 @@ function showToast(options) {
         setTimeout(() => removeToast(toast), duration);
     }
     
-    // 系统通知
     if (systemNotify) {
         showSystemNotification(title, message, {
             requireInteraction: duration === 0,
@@ -635,32 +666,6 @@ function updatePomodoroDisplay() {
     elements.pomodoroCount.textContent = state.pomodoroCompleted;
 }
 
-// 同步番茄钟设置（输入框变化时自动调用）
-function syncPomodoroSettings() {
-    // 只有在未运行时才��动更新
-    if (!state.pomodoroRunning) {
-        const newFocus = Math.max(1, Math.min(1440, parseInt(elements.focusDuration.value) || 25));
-        const newBreak = Math.max(1, Math.min(1440, parseInt(elements.breakDuration.value) || 5));
-        const newCycle = Math.max(1, Math.min(20, parseInt(elements.cycleCount.value) || 4));
-        
-        state.focusDuration = newFocus;
-        state.breakDuration = newBreak;
-        state.cycleCount = newCycle;
-        
-        // 如果还没开始（第1轮专注阶段），更新时间显示
-        if (state.currentCycle === 1 && state.pomodoroPhase === 'focus') {
-            state.pomodoroTimeLeft = state.focusDuration * 60;
-        }
-        
-        // 同步输入框显示（防止非法值）
-        elements.focusDuration.value = newFocus;
-        elements.breakDuration.value = newBreak;
-        elements.cycleCount.value = newCycle;
-        
-        updatePomodoroDisplay();
-    }
-}
-
 function startPomodoro() {
     if (state.pomodoroRunning) {
         // 暂停
@@ -669,7 +674,20 @@ function startPomodoro() {
         state.pomodoroTimer = null;
         elements.pomodoroStartBtn.textContent = '▶ 继续';
     } else {
-        // 开始
+        // 开始时读取最新设置（只在第一次开始时读取）
+        if (!state.pomodoroTimer && state.pomodoroPhase === 'focus' && state.currentCycle === 1) {
+            const newFocus = Math.max(1, parseInt(elements.focusDuration.value) || 25);
+            const newBreak = Math.max(1, parseInt(elements.breakDuration.value) || 5);
+            const newCycle = Math.max(1, parseInt(elements.cycleCount.value) || 4);
+            
+            state.focusDuration = newFocus;
+            state.breakDuration = newBreak;
+            state.cycleCount = newCycle;
+            state.pomodoroTimeLeft = state.focusDuration * 60;
+            
+            updatePomodoroDisplay();
+        }
+        
         state.pomodoroRunning = true;
         elements.pomodoroStartBtn.textContent = '⏸ 暂停';
         
@@ -807,13 +825,9 @@ function resetPomodoro() {
     state.pomodoroPhase = 'focus';
     state.currentCycle = 1;
     
-    state.focusDuration = Math.max(1, Math.min(1440, parseInt(elements.focusDuration.value) || 25));
-    state.breakDuration = Math.max(1, Math.min(1440, parseInt(elements.breakDuration.value) || 5));
-    state.cycleCount = Math.max(1, Math.min(20, parseInt(elements.cycleCount.value) || 4));
-    
-    elements.focusDuration.value = state.focusDuration;
-    elements.breakDuration.value = state.breakDuration;
-    elements.cycleCount.value = state.cycleCount;
+    state.focusDuration = Math.max(1, parseInt(elements.focusDuration.value) || 25);
+    state.breakDuration = Math.max(1, parseInt(elements.breakDuration.value) || 5);
+    state.cycleCount = Math.max(1, parseInt(elements.cycleCount.value) || 4);
     
     state.pomodoroTimeLeft = state.focusDuration * 60;
     
@@ -943,20 +957,13 @@ function updateAlertBorder(level) {
 // ========== 事件绑定 ==========
 function bindEvents() {
     elements.backBtn.addEventListener('click', () => {
+        endSession();
         fetch('/api/stop', { method: 'POST' });
         window.location.href = '/';
     });
     
     elements.pomodoroStartBtn.addEventListener('click', startPomodoro);
     elements.pomodoroResetBtn.addEventListener('click', resetPomodoro);
-    
-    // 番茄钟设置实时同步
-    elements.focusDuration.addEventListener('change', syncPomodoroSettings);
-    elements.breakDuration.addEventListener('change', syncPomodoroSettings);
-    elements.cycleCount.addEventListener('change', syncPomodoroSettings);
-    elements.focusDuration.addEventListener('input', syncPomodoroSettings);
-    elements.breakDuration.addEventListener('input', syncPomodoroSettings);
-    elements.cycleCount.addEventListener('input', syncPomodoroSettings);
     
     elements.addTodoBtn.addEventListener('click', addTodo);
     elements.todoInput.addEventListener('keypress', (e) => {
@@ -973,6 +980,9 @@ function bindEvents() {
 
 // ========== 初始化 ==========
 function init() {
+    // 开始学习会话
+    startSession();
+    
     // 请求系统通知权限
     if ('Notification' in window) {
         if (Notification.permission === 'default') {

@@ -55,7 +55,7 @@
 
     <!-- 情况总结弹窗 -->
     <div id="recordModal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 800px;">
             <div class="modal-header">
                 <h3>📊 情况总结</h3>
                 <span class="close-modal" id="closeRecordModal">&times;</span>
@@ -84,16 +84,59 @@
                 </div>
                 
                 <div class="record-content">
-                    <div class="record-summary simple">
+                    <!-- 统计摘要 - 增加学习时长 -->
+                    <div class="record-summary">
                         <div class="summary-item">
                             <span class="summary-label">获得积分</span>
                             <span class="summary-value" id="recordScore">+0</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">⏱️ 学习时长</span>
+                            <span class="summary-value" id="recordDuration">0小时0分</span>
                         </div>
                         <div class="summary-item warning">
                             <span class="summary-label">走神次数</span>
                             <span class="summary-value" id="recordDistractions">0 次</span>
                         </div>
                     </div>
+
+                    <!-- GitHub 风格热力图 - 仅在"全部"tab显示 -->
+                    <div class="heatmap-section" id="heatmapSection" style="display: none;">
+                        <div class="heatmap-header">
+                            <h4>📅 学习日历</h4>
+                            <div class="heatmap-year-nav">
+                                <button class="year-nav-btn" id="prevYearBtn">‹</button>
+                                <span id="heatmapYear">2026</span>
+                                <button class="year-nav-btn" id="nextYearBtn">›</button>
+                            </div>
+                        </div>
+                        <div class="heatmap-container">
+                            <div class="heatmap-months" id="heatmapMonths"></div>
+                            <div class="heatmap-wrapper">
+                                <div class="heatmap-weekdays">
+                                    <span></span>
+                                    <span>一</span>
+                                    <span></span>
+                                    <span>三</span>
+                                    <span></span>
+                                    <span>五</span>
+                                    <span></span>
+                                </div>
+                                <div class="heatmap-grid" id="heatmapGrid"></div>
+                            </div>
+                        </div>
+                        <div class="heatmap-legend">
+                            <span class="legend-label">少</span>
+                            <div class="legend-item level-0"></div>
+                            <div class="legend-item level-1"></div>
+                            <div class="legend-item level-2"></div>
+                            <div class="legend-item level-3"></div>
+                            <div class="legend-item level-4"></div>
+                            <span class="legend-label">多</span>
+                        </div>
+                        <div class="heatmap-tooltip" id="heatmapTooltip"></div>
+                    </div>
+
                     <div class="record-history">
                         <div class="history-header">
                             <h4>详细记录</h4>

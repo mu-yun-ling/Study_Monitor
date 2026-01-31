@@ -1969,3 +1969,277 @@ body {
 .monitor-page .pip-container {
     animation: scaleIn 0.5s ease-out 0.4s both;
 }
+
+/* ===== 月份日历热力图 ===== */
+.heatmap-section {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-subtle);
+    position: relative;
+}
+
+.heatmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.heatmap-header h4 {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.heatmap-year-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.heatmap-year-nav span {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 100px;
+    text-align: center;
+}
+
+.year-nav-btn {
+    width: 32px;
+    height: 32px;
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid var(--border-subtle);
+    border-radius: 8px;
+    color: var(--text-primary);
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.year-nav-btn:hover {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.heatmap-container {
+    overflow-x: auto;
+}
+
+.heatmap-months {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 8px;
+    padding-left: 0;
+}
+
+.heatmap-months span {
+    width: 40px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.heatmap-wrapper {
+    display: flex;
+}
+
+.heatmap-weekdays {
+    display: none;
+}
+
+.heatmap-grid {
+    width: 100%;
+}
+
+.month-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+}
+
+.heatmap-cell {
+    aspect-ratio: 1;
+    min-height: 36px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.heatmap-cell:hover {
+    transform: scale(1.1);
+    z-index: 10;
+}
+
+.heatmap-cell.outside {
+    background: transparent;
+    cursor: default;
+}
+
+.heatmap-cell.outside:hover {
+    transform: none;
+}
+
+.cell-day {
+    font-size: 12px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.heatmap-cell.level-0 {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.heatmap-cell.level-0 .cell-day {
+    color: var(--text-secondary);
+}
+
+.heatmap-cell.level-1 {
+    background: rgba(108, 92, 231, 0.25);
+}
+
+.heatmap-cell.level-1 .cell-day {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.heatmap-cell.level-2 {
+    background: rgba(108, 92, 231, 0.45);
+}
+
+.heatmap-cell.level-2 .cell-day {
+    color: white;
+}
+
+.heatmap-cell.level-3 {
+    background: rgba(108, 92, 231, 0.7);
+}
+
+.heatmap-cell.level-3 .cell-day {
+    color: white;
+}
+
+.heatmap-cell.level-4 {
+    background: var(--primary-color);
+    box-shadow: 0 0 12px rgba(108, 92, 231, 0.5);
+}
+
+.heatmap-cell.level-4 .cell-day {
+    color: white;
+    font-weight: 600;
+}
+
+.heatmap-legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-subtle);
+}
+
+.heatmap-legend .legend-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0 4px;
+}
+
+.heatmap-legend .legend-item {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+}
+
+.heatmap-legend .legend-item.level-0 {
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.heatmap-legend .legend-item.level-1 {
+    background: rgba(108, 92, 231, 0.25);
+}
+
+.heatmap-legend .legend-item.level-2 {
+    background: rgba(108, 92, 231, 0.45);
+}
+
+.heatmap-legend .legend-item.level-3 {
+    background: rgba(108, 92, 231, 0.7);
+}
+
+.heatmap-legend .legend-item.level-4 {
+    background: var(--primary-color);
+}
+
+.heatmap-tooltip {
+    position: absolute;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text-primary);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    display: none;
+    pointer-events: none;
+    white-space: nowrap;
+    transform: translateX(-50%);
+}
+
+.heatmap-tooltip strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--primary-color);
+    font-size: 14px;
+}
+
+/* 统计摘要三列布局 */
+.record-summary {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.record-summary .summary-item {
+    background: rgba(255, 255, 255, 0.05);
+    padding: 15px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* 响应式 */
+@media (max-width: 500px) {
+    .heatmap-cell {
+        min-height: 28px;
+        border-radius: 6px;
+    }
+    
+    .cell-day {
+        font-size: 10px;
+    }
+    
+    .month-calendar-grid {
+        gap: 4px;
+    }
+    
+    .heatmap-months span {
+        width: 100%;
+        font-size: 10px;
+    }
+    
+    .record-summary {
+        grid-template-columns: 1fr;
+    }
+}
