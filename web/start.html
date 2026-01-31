@@ -9,10 +9,9 @@
 <body class="menu-page">
     <div class="background-overlay"></div>
     <div class="menu-container">
-        <h1 class="title">📚 学习监督系统</h1>
-        <p class="subtitle">专注学习，高效成长</p>
+        <h1 class="title">📚 我正在凝视你</h1>
+        <p class="subtitle">不积跬步，无以至千里</p>
         
-        <!-- 学习数据卡片 -->
         <div class="stats-overview">
             <div class="stat-card">
                 <div class="stat-icon">🏆</div>
@@ -22,24 +21,10 @@
                 </div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">⏱️</div>
+                <div class="stat-icon">😴</div>
                 <div class="stat-info">
-                    <div class="stat-value" id="totalTime">0h</div>
-                    <div class="stat-label">学习时长</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">🍅</div>
-                <div class="stat-info">
-                    <div class="stat-value" id="totalPomodoros">0</div>
-                    <div class="stat-label">番茄数</div>
-                </div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-icon">✅</div>
-                <div class="stat-info">
-                    <div class="stat-value" id="totalTasks">0</div>
-                    <div class="stat-label">完成任务</div>
+                    <div class="stat-value" id="totalDistractions">0</div>
+                    <div class="stat-label">走神次数</div>
                 </div>
             </div>
         </div>
@@ -48,55 +33,61 @@
             <h2>选择模式</h2>
             <div class="mode-cards">
                 <div class="mode-card active" data-mode="STUDY">
-                    <div class="mode-icon">📖</div>
+                    <div class="mode-icon">💻</div>
                     <div class="mode-name">学习模式</div>
-                    <div class="mode-desc">阅读、背诵、复习</div>
+                    <div class="mode-desc">电脑工作、看网课<br><small>抬头学习，持续低头会被检测为走神</small></div>
                 </div>
                 <div class="mode-card" data-mode="HOMEWORK">
-                    <div class="mode-icon">✍️</div>
+                    <div class="mode-icon">📖</div>
                     <div class="mode-name">作业模式</div>
-                    <div class="mode-desc">写作业、做题</div>
+                    <div class="mode-desc">写作业、阅读书籍<br><small>低头工作，持续抬头会被检测为走神</small></div>
                 </div>
             </div>
         </div>
         
         <div class="button-section">
             <button class="btn btn-large btn-primary" id="startBtn">🚀 开始学习</button>
-            <button class="btn btn-large btn-secondary" id="recordBtn">📊 学习记录</button>
+            <button class="btn btn-large btn-secondary" id="recordBtn">📊 情况总结</button>
+            <button class="btn btn-large btn-secondary" id="diaryBtn">📝 学习日记</button>
             <button class="btn btn-large btn-secondary" id="settingsBtn">⚙️ 参数调试</button>
         </div>
     </div>
 
-    <!-- 学习记录弹窗 -->
+    <!-- 情况总结弹窗 -->
     <div id="recordModal" class="modal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <h3>📊 学习记录</h3>
+                <h3>📊 情况总结</h3>
                 <span class="close-modal" id="closeRecordModal">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="record-tabs">
-                    <button class="tab-btn active" data-tab="today">今日</button>
-                    <button class="tab-btn" data-tab="week">本周</button>
-                    <button class="tab-btn" data-tab="all">全部</button>
-                </div>
-                <div class="record-content">
-                    <div class="record-summary">
-                        <div class="summary-item">
-                            <span class="summary-label">学习时长</span>
-                            <span class="summary-value" id="recordTime">0 分钟</span>
+                <div class="filter-section">
+                    <div class="filter-tabs">
+                        <button class="tab-btn active" data-tab="today">今日</button>
+                        <button class="tab-btn" data-tab="week">本周</button>
+                        <button class="tab-btn" data-tab="month">本月</button>
+                        <button class="tab-btn" data-tab="all">全部</button>
+                    </div>
+                    <div class="filter-options">
+                        <div class="filter-month" id="monthFilterContainer" style="display: none;">
+                            <select id="monthFilter" class="dark-select">
+                                <option value="">选择月份</option>
+                            </select>
                         </div>
+                        <div class="filter-sort">
+                            <select id="sortOrder" class="dark-select">
+                                <option value="desc">时间倒序</option>
+                                <option value="asc">时间正序</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="record-content">
+                    <div class="record-summary simple">
                         <div class="summary-item">
                             <span class="summary-label">获得积分</span>
                             <span class="summary-value" id="recordScore">+0</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">完成番茄</span>
-                            <span class="summary-value" id="recordPomodoros">0 个</span>
-                        </div>
-                        <div class="summary-item">
-                            <span class="summary-label">完成任务</span>
-                            <span class="summary-value" id="recordTasks">0 个</span>
                         </div>
                         <div class="summary-item warning">
                             <span class="summary-label">走神次数</span>
@@ -104,24 +95,89 @@
                         </div>
                     </div>
                     <div class="record-history">
-                        <h4>历史记录</h4>
-                        <div class="history-list" id="historyList">
-                            <div class="history-empty">暂无记录，开始你的第一次学习吧！</div>
+                        <div class="history-header">
+                            <h4>详细记录</h4>
+                            <span class="record-count" id="recordCount">共 0 条</span>
                         </div>
+                        <div class="history-list" id="historyList">
+                            <div class="history-empty">暂无记录</div>
+                        </div>
+                        <div class="pagination" id="recordPagination"></div>
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button class="btn btn-danger" id="clearRecordBtn">清空记录</button>
+        </div>
+    </div>
+
+    <!-- 学习日记弹窗 -->
+    <div id="diaryModal" class="modal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3>📝 学习日记</h3>
+                <span class="close-modal" id="closeDiaryModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="diary-write-section">
+                    <h4>✏️ 时间漂流瓶</h4>
+                    <div class="diary-date-picker">
+                        <label>日期：</label>
+                        <input type="date" id="diaryDate" class="dark-input">
+                    </div>
+                    <textarea id="diaryContent" class="diary-textarea" placeholder="今天学习了什么？有什么收获或感想？"></textarea>
+                    <div class="diary-actions">
+                        <button class="btn btn-primary" id="saveDiaryBtn">保存日记</button>
+                    </div>
+                </div>
+                
+                <div class="diary-list-section">
+                    <div class="diary-list-header">
+                        <h4>📚 历史日记</h4>
+                        <div class="diary-filter">
+                            <select id="diaryMonthFilter" class="dark-select">
+                                <option value="">全部月份</option>
+                            </select>
+                            <select id="diarySortOrder" class="dark-select">
+                                <option value="desc">时间倒序</option>
+                                <option value="asc">时间正序</option>
+                            </select>
+                            <span class="diary-count" id="diaryCount">共 0 篇</span>
+                        </div>
+                    </div>
+                    <div class="diary-list" id="diaryList">
+                        <div class="diary-empty">还没有日记</div>
+                    </div>
+                    <div class="pagination" id="diaryPagination"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 查看/编辑日记弹窗 -->
+    <div id="diaryViewModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header">
+                <h3 id="diaryViewTitle">📖 查看日记</h3>
+                <span class="close-modal" id="closeDiaryViewModal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="diary-view-date" id="diaryViewDate"></div>
+                <div class="diary-view-content" id="diaryViewContent"></div>
+                <textarea id="diaryEditContent" class="diary-textarea" style="display: none;"></textarea>
+            </div>
+            <div class="modal-footer diary-view-footer">
+                <button class="btn btn-secondary" id="editDiaryBtn">✏️ 编辑</button>
+                <button class="btn btn-primary" id="saveEditDiaryBtn" style="display: none;">保存</button>
+                <button class="btn btn-secondary" id="cancelEditDiaryBtn" style="display: none;">取消</button>
+                <button class="btn btn-danger" id="deleteDiaryBtn">删除</button>
             </div>
         </div>
     </div>
 
     <!-- 参数调试弹窗 -->
     <div id="settingsModal" class="modal">
-        <div class="modal-content" style="max-width: 850px;">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h3>🛠️ 算法精准调试看板</h3>
+                <h3>🛠️ 摄像头参数调试</h3>
                 <span class="close-modal" id="closeModal">&times;</span>
             </div>
             <div class="modal-body" style="display: flex; gap: 20px; padding: 20px;">
@@ -129,24 +185,38 @@
                     <div style="background: #000; border-radius: 12px; overflow: hidden; border: 2px solid #333;">
                         <img id="debugVideo" src="" style="width: 100%; height: auto; display: block;" alt="等待摄像头...">
                         <div class="debug-overlay">
-                            <div>EAR (眼): <span id="live_ear">0.000</span></div>
-                            <div>Pitch (头): <span id="live_pitch">0°</span></div>
-                            <div>Yaw (转): <span id="live_yaw">0°</span></div>
+                            <div>EAR: <span id="live_ear">0.000</span></div>
+                            <div>Pitch: <span id="live_pitch">0°</span></div>
+                            <div>Yaw: <span id="live_yaw">0°</span></div>
                         </div>
                     </div>
+                    <div class="debug-hint">
+                        <p>Pitch: 负值=低头，正值=抬头</p>
+                    </div>
                 </div>
-                <div style="flex: 1; display: flex; flex-direction: column; gap: 20px;">
+                <div style="flex: 1; display: flex; flex-direction: column; gap: 18px;">
                     <div class="setting-group">
-                        <label>闭眼阈值 (EAR)</label>
+                        <label>闭眼阈值</label>
                         <input type="range" id="ear_threshold" min="0.1" max="0.5" step="0.01" value="0.2">
                         <span id="earThresholdValue" class="setting-value">0.2</span>
                     </div>
                     <div class="setting-group">
-                        <label>低头阈值 (Pitch)</label>
-                        <input type="range" id="pitch_extreme_low" min="-60" max="0" step="1" value="-30">
-                        <span id="pitchExtremeLowValue" class="setting-value">-30°</span>
+                        <label>低头阈值 (学习模式)</label>
+                        <p class="setting-desc">低于此角度视为低头走神</p>
+                        <input type="range" id="pitch_head_down" min="-60" max="0" step="1" value="-15">
+                        <span id="pitchHeadDownValue" class="setting-value">-15°</span>
                     </div>
-                    <p class="setting-hint">提示：请根据左侧实时数据调整滑块至临界值。</p>
+                    <div class="setting-group">
+                        <label>抬头阈值 (作业模式)</label>
+                        <p class="setting-desc">高于此角度视为抬头走神</p>
+                        <input type="range" id="pitch_head_up" min="-10" max="40" step="1" value="10">
+                        <span id="pitchHeadUpValue" class="setting-value">10°</span>
+                    </div>
+                    <div class="setting-group">
+                        <label>转头阈值 </label>
+                        <input type="range" id="yaw_threshold" min="15" max="60" step="1" value="30">
+                        <span id="yawThresholdValue" class="setting-value">30°</span>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">

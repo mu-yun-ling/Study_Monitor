@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>专注学习中</title>
+    <title>我的学习宇宙</title>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <link rel="stylesheet" href="/style.css">
 </head>
@@ -13,7 +13,7 @@
         <div class="distraction-content">
             <div class="distraction-icon">😴</div>
             <h2>检测到走神！</h2>
-            <p id="distractionReason">请保持专注</p>
+            <p id="distractionReason">需要休息一下吗？学习要专注哦~</p>
             <button class="btn btn-primary btn-large" id="backToFocusBtn">我已回神</button>
         </div>
     </div>
@@ -52,38 +52,43 @@
             </div>
             
             <div class="pomodoro-card">
-                <div class="pomodoro-header">
-                    <h2>🍅 番茄钟</h2>
-                    <div class="pomodoro-count">
-                        已完成 <span id="pomodoroCount">0</span> 个
-                    </div>
-                </div>
-                <div class="pomodoro-timer">
-                    <svg class="progress-ring" width="220" height="220">
-                        <circle class="progress-ring-bg" cx="110" cy="110" r="100"/>
-                        <circle class="progress-ring-fill" id="progressRing" cx="110" cy="110" r="100"/>
-                    </svg>
-                    <div class="timer-display">
-                        <div class="timer-time" id="pomodoroTime">25:00</div>
-                        <div class="timer-label" id="pomodoroLabel">专注时间</div>
-                    </div>
-                </div>
-                <div class="pomodoro-controls">
-                    <button class="btn btn-primary" id="pomodoroStartBtn">▶ 开始</button>
-                    <button class="btn btn-secondary" id="pomodoroResetBtn">↺ 重置</button>
-                </div>
-                <div class="pomodoro-settings">
-                    <label>
-                        专注 <input type="number" id="focusDuration" value="25" min="1" max="1440"> 分钟
-                    </label>
-                    <label>
-                        休息 <input type="number" id="breakDuration" value="5" min="1" max="1440"> 分钟
-                    </label>
-                </div>
-            </div>
+    <div class="pomodoro-header">
+        <h2>🍅 番茄钟</h2>
+        <div class="pomodoro-count">
+            已完成 <span id="pomodoroCount">0</span> 个
+        </div>
+    </div>
+    <div class="pomodoro-timer">
+        <svg class="progress-ring" width="220" height="220">
+            <circle class="progress-ring-bg" cx="110" cy="110" r="100"/>
+            <circle class="progress-ring-fill" id="progressRing" cx="110" cy="110" r="100"/>
+        </svg>
+        <div class="timer-display">
+            <div class="timer-time" id="pomodoroTime">25:00</div>
+            <div class="timer-label" id="pomodoroLabel">专注时间</div>
+            <div class="timer-cycle" id="pomodoroCycle"></div>
+        </div>
+    </div>
+    <div class="pomodoro-controls">
+        <button class="btn btn-primary" id="pomodoroStartBtn">▶ 开始</button>
+        <button class="btn btn-secondary" id="pomodoroResetBtn">↺ 重置</button>
+    </div>
+    <div class="pomodoro-settings">
+        <label>
+            专注 <input type="number" id="focusDuration" value="25" min="1" max="1440"> 分钟
+        </label>
+        <label>
+            休息 <input type="number" id="breakDuration" value="5" min="1" max="1440"> 分钟
+        </label>
+        <label>
+            循环 <input type="number" id="cycleCount" value="4" min="1" max="20"> 次
+        </label>
+    </div>
+</div>
+
         </div>
 
-        <!-- 右侧：待办清单 -->
+        <!-- 右侧：待办清单todolist -->
         <div class="todo-section">
             <div class="todo-card">
                 <div class="todo-header">
@@ -108,7 +113,7 @@
         <div class="pip-header" id="pipHeader">
             <span class="pip-title">📷 实时监控</span>
             <div class="pip-actions">
-                <button class="pip-btn" id="pipDock" title="停靠/分离">⇱</button>
+                <button class="pip-btn" id="pipDockBtn" title="停靠/分离">⇱</button>
                 <button class="pip-btn" id="pipToggle" title="折叠/展开">−</button>
             </div>
         </div>
@@ -128,6 +133,9 @@
 
     <!-- 警告边框 -->
     <div class="alert-border" id="alertBorder"></div>
+
+    <!-- 右下角 Toast 通知容器 -->
+    <div id="toastContainer" class="toast-container"></div>
 
     <script src="/monitor.js"></script>
 </body>
