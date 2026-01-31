@@ -1,0 +1,6 @@
+{
+  "ear_threshold": "0.2",
+  "pitch_head_down": "0",
+  "pitch_head_up": "2",
+  "yaw_threshold": "30"
+}

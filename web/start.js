@@ -55,12 +55,52 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // ========== 从后端加载设置 ==========
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings');
+            const data = await response.json();
+            if (data.status === 'ok' && data.settings) {
+                const settings = data.settings;
+                
+                // 更新滑动条的值
+                const earSlider = document.getElementById('ear_threshold');
+                const pitchDownSlider = document.getElementById('pitch_head_down');
+                const pitchUpSlider = document.getElementById('pitch_head_up');
+                const yawSlider = document.getElementById('yaw_threshold');
+                
+                if (earSlider) {
+                    earSlider.value = settings.ear_threshold;
+                    document.getElementById('earThresholdValue').innerText = settings.ear_threshold;
+                }
+                if (pitchDownSlider) {
+                    pitchDownSlider.value = settings.pitch_head_down;
+                    document.getElementById('pitchHeadDownValue').innerText = settings.pitch_head_down + '°';
+                }
+                if (pitchUpSlider) {
+                    pitchUpSlider.value = settings.pitch_head_up;
+                    document.getElementById('pitchHeadUpValue').innerText = settings.pitch_head_up + '°';
+                }
+                if (yawSlider) {
+                    yawSlider.value = settings.yaw_threshold;
+                    document.getElementById('yawThresholdValue').innerText = settings.yaw_threshold + '°';
+                }
+                
+                console.log('已加载设置:', settings);
+            }
+        } catch (e) {
+            console.error('加载设置失败:', e);
+        }
+    }
+
     // ========== 调试弹窗 ==========
     const settingsModal = document.getElementById('settingsModal');
     const debugVideo = document.getElementById('debugVideo');
 
-    document.getElementById('settingsBtn').onclick = () => {
+    document.getElementById('settingsBtn').onclick = async () => {
         settingsModal.style.display = 'flex';
+        // 先加载当前设置，再启动摄像头
+        await loadSettings();
         fetch('/api/start', { method: 'POST' });
     };
 
@@ -165,14 +205,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         
-        // 排序
         filtered.sort((a, b) => {
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
             return recordSortOrder === 'desc' ? dateB - dateA : dateA - dateB;
         });
         
-        // 计算汇总
         let totalScore = 0;
         let distractionCount = 0;
         
@@ -189,12 +227,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('recordDistractions').textContent = distractionCount + ' 次';
         document.getElementById('recordCount').textContent = `共 ${filtered.length} 条`;
         
-        // 分页
         const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
         const startIndex = (recordCurrentPage - 1) * PAGE_SIZE;
         const pageData = filtered.slice(startIndex, startIndex + PAGE_SIZE);
         
-        // 渲染列表
         const historyList = document.getElementById('historyList');
         if (pageData.length === 0) {
             historyList.innerHTML = '<div class="history-empty">暂无记录</div>';
@@ -376,7 +412,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('diaryContent').value = '';
         updateDiaryMonthFilter();
         loadDiaryList();
-        alert('日记保存成功！');
+        alert('日记保存���功！');
     };
     
     function loadDiaryList() {
@@ -390,7 +426,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
         
-        // 排序
         diaries.sort((a, b) => {
             const dateA = new Date(a.date);
             const dateB = new Date(b.date);
@@ -541,19 +576,24 @@ document.addEventListener('DOMContentLoaded', function() {
     // ========== 保存设置 ==========
     document.getElementById('saveSettingsBtn').onclick = async () => {
         const settings = {
-            ear_threshold: document.getElementById('ear_threshold').value,
-            pitch_head_down: document.getElementById('pitch_head_down').value,
-            pitch_head_up: document.getElementById('pitch_head_up').value,
-            yaw_threshold: document.getElementById('yaw_threshold').value
+            ear_threshold: parseFloat(document.getElementById('ear_threshold').value),
+            pitch_head_down: parseInt(document.getElementById('pitch_head_down').value),
+            pitch_head_up: parseInt(document.getElementById('pitch_head_up').value),
+            yaw_threshold: parseInt(document.getElementById('yaw_threshold').value)
         };
-        await fetch('/api/settings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(settings)
-        });
-        settingsModal.style.display = 'none';
-        fetch('/api/stop', { method: 'POST' });
-        alert('参数已保存！');
+        
+        try {
+            await fetch('/api/settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(settings)
+            });
+            settingsModal.style.display = 'none';
+            fetch('/api/stop', { method: 'POST' });
+            alert('参数已保存！下次启动也会保留这些设置。');
+        } catch (e) {
+            alert('保存失败：' + e.message);
+        }
     };
 
     // ========== 开始学习 ==========

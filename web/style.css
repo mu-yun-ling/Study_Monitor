@@ -1889,3 +1889,83 @@ body {
         align-items: flex-start;
     }
 }
+/* ===== 入场动画 ===== */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+/* 首页动画 */
+.menu-page .title {
+    animation: fadeInUp 0.8s ease-out;
+}
+
+.menu-page .subtitle {
+    animation: fadeInUp 0.8s ease-out 0.1s both;
+}
+
+.menu-page .stats-overview {
+    animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+.menu-page .mode-section {
+    animation: fadeInUp 0.8s ease-out 0.3s both;
+}
+
+.menu-page .button-section {
+    animation: fadeInUp 0.8s ease-out 0.4s both;
+}
+
+/* 模式卡片动画 */
+.mode-card {
+    animation: scaleIn 0.5s ease-out 0.4s both;
+}
+
+.mode-card:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+/* 统计卡片依次出现 */
+.stat-card:nth-child(1) { animation: fadeInUp 0.5s ease-out 0.2s both; }
+.stat-card:nth-child(2) { animation: fadeInUp 0.5s ease-out 0.3s both; }
+.stat-card:nth-child(3) { animation: fadeInUp 0.5s ease-out 0.4s both; }
+.stat-card:nth-child(4) { animation: fadeInUp 0.5s ease-out 0.5s both; }
+
+/* 监控页动画 */
+.monitor-page .top-bar {
+    animation: fadeIn 0.5s ease-out;
+}
+
+.monitor-page .pomodoro-card {
+    animation: fadeInUp 0.6s ease-out 0.2s both;
+}
+
+.monitor-page .todo-card {
+    animation: fadeInUp 0.6s ease-out 0.3s both;
+}
+
+.monitor-page .pip-container {
+    animation: scaleIn 0.5s ease-out 0.4s both;
+}
